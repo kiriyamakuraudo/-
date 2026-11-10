@@ -1,0 +1,462 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .slot-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 650px;
+            margin: 10px auto;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        h1 {
+            color: #1f2937;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #4b5563;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+        .slots-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .slot-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .slot-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: bold;
+        }
+        .slot-window {
+            background: #111827;
+            border: 4px solid #4b5563;
+            border-radius: 12px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .slot-text {
+            color: #10b981;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 0 10px;
+            word-break: break-all;
+        }
+        .slot-text.spinning {
+            color: #f59e0b;
+        }
+        .slot-text.hit {
+            color: #ef4444;
+            transform: scale(1.05);
+            transition: transform 0.1s;
+        }
+        /* 確率を表示するエリアのデザイン */
+        .prob-badge {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 5px;
+            font-weight: bold;
+            min-height: 18px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+        }
+        /* 統合されたメインボタン */
+        #main-slot-btn {
+            width: 100%;
+            background-color: #3b82f6; /* 最初は青色 */
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
+        }
+        #main-slot-btn:hover {
+            opacity: 0.9;
+        }
+        #main-slot-btn:disabled {
+            background-color: #9ca3af !important; /* 無効時はグレー */
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="slot-container">
+    <h1>あなたの運命の人</h1>
+    <div class="subtitle">この世界からたった一人選ばれる</div>
+    
+    <div class="slots-row">
+        <div class="slot-box">
+            <div class="slot-label">① 生まれ</div>
+            <div class="slot-window"><div id="slot-1" class="slot-text">???</div></div>
+            <div id="prob-1" class="prob-badge"></div>
+        </div>
+        <div class="slot-box">
+            <div class="slot-label">② 年齢</div>
+            <div class="slot-window"><div id="slot-2" class="slot-text">???</div></div>
+            <div id="prob-2" class="prob-badge"></div>
+        </div>
+        <div class="slot-box">
+            <div class="slot-label">③ 性別</div>
+            <div class="slot-window"><div id="slot-3" class="slot-text">???</div></div>
+            <div id="prob-3" class="prob-badge"></div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <!-- 統合された1つのボタン -->
+        <button id="main-slot-btn" onclick="handleSlotAction()">動き</button>
+    </div>
+</div>
+
+<script>
+    // 【単語と重みの設定】
+    const slotData = {
+        list1: [
+ { text:"インド", weight:17.58 },
+{ text:"中国", weight:6.74 },
+{ text:"ナイジェリア", weight:5.68 },
+{ text:"パキスタン", weight:5.21 },
+{ text:"インドネシア", weight:3.39 },
+{ text:"コンゴ民主共和国", weight:3.31 },
+{ text:"エチオピア", weight:3.11 },
+{ text:"アメリカ合衆国", weight:2.77 },
+{ text:"バングラデシュ", weight:2.15 },
+{ text:"ブラジル", weight:2.02 },
+{ text:"エジプト", weight:1.85 },
+{ text:"フィリピン", weight:1.68 },
+{ text:"タンザニア", weight:1.55 },
+{ text:"ケニア", weight:1.28 },
+{ text:"メキシコ", weight:1.27 },
+{ text:"ウガンダ", weight:1.24 },
+{ text:"ベトナム", weight:1.12 },
+{ text:"ロシア", weight:1.10 },
+{ text:"スーダン", weight:1.08 },
+{ text:"ニジェール", weight:1.05 },
+{ text:"アフガニスタン", weight:1.02 },
+{ text:"イラン", weight:0.91 },
+{ text:"トルコ", weight:0.88 },
+{ text:"アンゴラ", weight:0.85 },
+{ text:"イラク", weight:0.83 },
+{ text:"ミャンマー", weight:0.76 },
+{ text:"モザンビーク", weight:0.74 },
+{ text:"アルジェリア", weight:0.73 },
+{ text:"コトジボワール", weight:0.71 },
+{ text:"ガーナ", weight:0.70 },
+{ text:"イエメン", weight:0.69 },
+{ text:"マダガスカル", weight:0.68 },
+{ text:"マレーシア", weight:0.67 },
+{ text:"コロンビア", weight:0.65 },
+{ text:"カメルーン", weight:0.64 },
+{ text:"モロッコ", weight:0.59 },
+{ text:"サウジアラビア", weight:0.58 },
+{ text:"ネパール", weight:0.57 },
+{ text:"南アフリカ", weight:0.56 },
+{ text:"ウズベキスタン", weight:0.55 },
+{ text:"タイ", weight:0.54 },
+{ text:"日本", weight:0.52 },
+{ text:"ペルー", weight:0.51 },
+{ text:"ベネズエラ", weight:0.50 },
+{ text:"シリア", weight:0.48 },
+{ text:"ブルキナファソ", weight:0.47 },
+{ text:"マリ", weight:0.46 },
+{ text:"マラウイ", weight:0.44 },
+{ text:"ザンビア", weight:0.43 },
+{ text:"アルゼンチン", weight:0.42 },
+{ text:"ソマリア", weight:0.41 },
+{ text:"イギリス", weight:0.41 },
+{ text:"フランス", weight:0.41 },
+{ text:"チャド", weight:0.40 },
+{ text:"ドイツ", weight:0.40 },
+{ text:"セネガル", weight:0.39 },
+{ text:"ジンバブエ", weight:0.38 },
+{ text:"ギニア", weight:0.37 },
+{ text:"グアテマラ", weight:0.36 },
+{ text:"カナダ", weight:0.35 },
+{ text:"ルワンダ", weight:0.33 },
+{ text:"南スーダン", weight:0.32 },
+{ text:"チュニジア", weight:0.31 },
+{ text:"ベナン", weight:0.30 },
+{ text:"ボリビア", weight:0.29 },
+{ text:"オーストラリア", weight:0.29 },
+{ text:"エクアドル", weight:0.28 },
+{ text:"ブルンジ", weight:0.27 },
+{ text:"ハイティ", weight:0.27 },
+{ text:"チリ", weight:0.26 },
+{ text:"タジキスタン", weight:0.25 },
+{ text:"ドミニカ共和国", weight:0.24 },
+{ text:"カンボジア", weight:0.23 },
+{ text:"シエラレオネ", weight:0.22 },
+{ text:"カザフスタン", weight:0.21 },
+{ text:"スリランカ", weight:0.20 },
+{ text:"イタリア", weight:0.20 },
+{ text:"ホンジュラス", weight:0.19 },
+{ text:"パプアニューギニア", weight:0.19 },
+{ text:"トーゴ", weight:0.18 },
+{ text:"スペイン", weight:0.18 },
+{ text:"リビア", weight:0.17 },
+{ text:"ヨルダン", weight:0.17 },
+{ text:"韓国", weight:0.16 },
+{ text:"コスタリカ", weight:0.15 },
+{ text:"パレスチナ", weight:0.15 },
+{ text:"中央アフリカ共和国", weight:0.14 },
+{ text:"ラオス", weight:0.14 },
+{ text:"リベリア", weight:0.13 },
+{ text:"パラグアイ", weight:0.12 },
+{ text:"ニカラグア", weight:0.12 },
+{ text:"エルサルバドル", weight:0.11 },
+{ text:"キルギス", weight:0.11 },
+{ text:"イスラエル", weight:0.095 },
+{ text:"マザニア", weight:0.092 },
+{ text:"ポーランド", weight:0.088 },
+{ text:"ウクライナ", weight:0.085 },
+{ text:"エリトリア", weight:0.082 },
+{ text:"パナマ", weight:0.080 },
+{ text:"ニュージーランド", weight:0.078 },
+{ text:"レバノン", weight:0.075 },
+{ text:"オマーン", weight:0.072 },
+{ text:"アイルランド", weight:0.068 },
+{ text:"トルクメニスタン", weight:0.065 },
+{ text:"ココ共和国（コンゴ共和国）", weight:0.063 },
+{ text:"モーリタニア", weight:0.061 },
+{ text:"クウェート", weight:0.059 },
+{ text:"シンガポール", weight:0.058 },
+{ text:"ノルウェー", weight:0.055 },
+{ text:"スウェーデン", weight:0.054 },
+{ text:"デンマーク", weight:0.052 },
+{ text:"フィンランド", weight:0.050 },
+{ text:"オランダ", weight:0.048 },
+{ text:"ベルギー", weight:0.046 },
+{ text:"ウルグアイ", weight:0.045 },
+{ text:"アラブ首長国連邦", weight:0.044 },
+{ text:"アゼルバイジャン", weight:0.043 },
+{ text:"ポルトガル", weight:0.042 },
+{ text:"ギリシャ", weight:0.040 },
+{ text:"チェコ", weight:0.038 },
+{ text:"ハンガリー", weight:0.036 },
+{ text:"スイス", weight:0.035 },
+{ text:"オーストリア", weight:0.033 },
+{ text:"ジョージア", weight:0.031 },
+{ text:"モンゴル", weight:0.030 },
+{ text:"アルメニア", weight:0.029 },
+{ text:"ジャマイカ", weight:0.028 },
+{ text:"ナミビア", weight:0.027 },
+{ text:"ボツワナ", weight:0.026 },
+{ text:"ガボン", weight:0.025 },
+{ text:"レソト", weight:0.024 },
+{ text:"ガンビア", weight:0.023 },
+{ text:"ギニアビサウ", weight:0.022 },
+{ text:"カタール", weight:0.021 },
+{ text:"バーレーン", weight:0.020 },
+{ text:"ルーマニア", weight:0.019 },
+{ text:"ブルガリア", weight:0.018 },
+{ text:"クロアチア", weight:0.017 },
+{ text:"スロバキア", weight:0.016 },
+{ text:"モルドバ", weight:0.015 },
+{ text:"アルバニア", weight:0.014 },
+{ text:"北マケドニア", weight:0.013 },
+{ text:"スロベニア", weight:0.012 },
+{ text:"ラトビア", weight:0.011 },
+{ text:"エストニア", weight:0.010 },
+{ text:"リトアニア", weight:0.010 },
+{ text:"コソボ", weight:0.010 },
+{ text:"トリニダード・トバゴ", weight:0.010 },
+{ text:"モーリシャス", weight:0.009 },
+{ text:"キプロス", weight:0.008 },
+{ text:"フィジー", weight:0.008 },
+{ text:"エスワティニ", weight:0.007 },
+{ text:"ジブチ", weight:0.007 },
+{ text:"赤道ギニア", weight:0.006 },
+{ text:"コモロ", weight:0.006 },
+{ text:"ソロモン諸島", weight:0.005 },
+{ text:"ガイアナ", weight:0.005 },
+{ text:"ブータン", weight:0.005 },
+{ text:"モンテネグロ", weight:0.004 },
+{ text:"ルクセンブルク", weight:0.004 },
+{ text:"スリナム", weight:0.004 },
+{ text:"カボベルデ", weight:0.003 },
+{ text:"マルタ", weight:0.003 },
+{ text:"ブルネイ", weight:0.003 },
+{ text:"バハマ", weight:0.003 },
+{ text:"アイスランド", weight:0.003 },
+{ text:"モルディブ", weight:0.002 },
+{ text:"ベリーズ", weight:0.002 },
+{ text:"バルバドス", weight:0.002 },
+{ text:"バヌアツ", weight:0.002 },
+{ text:"サモア", weight:0.002 },
+{ text:"サントメ・プリンシペ", weight:0.002 },
+{ text:"セントルシア", weight:0.001 },
+{ text:"セントビンセント及びグレナディーン諸島", weight:0.001 },
+{ text:"グレナダ", weight:0.001 },
+{ text:"ミクロネシア連邦", weight:0.001 },
+{ text:"トンガ", weight:0.001 },
+{ text:"キリバス", weight:0.001 },
+{ text:"アンティグア・バーブーダ", weight:0.0008 },
+{ text:"セーシェル", weight:0.0007 },
+{ text:"ドミニカ国", weight:0.0005 },
+{ text:"アンドラ", weight:0.0004 },
+{ text:"セントクリストファー・ネービス", weight:0.0004 },
+{ text:"マーシャル諸島", weight:0.0003 },
+{ text:"リヒテンシュタイン", weight:0.0002 },
+{ text:"モナコ", weight:0.0002 },
+{ text:"サンマリノ", weight:0.0001 },
+{ text:"パラオ", weight:0.0001 },
+{ text:"ツバル", weight:0.00008 },
+{ text:"ナウル", weight:0.00007 },
+{ text:"宇宙", weight:0.095 }
+        ],
+        list2: [
+            { text:"0歳",      weight:1.55 },
+            { text:"1歳",      weight:1.54 },
+            { text:"2歳",      weight:1.54 },
+            { text:"3歳",      weight:1.53 },
+            { text:"4歳",      weight:1.53 },
+            { text:"5歳",      weight:1.58 },
+            { text:"6歳",      weight:1.58 },
+            { text:"7歳",      weight:1.58 },
+            { text:"8歳",      weight:1.58 },
+            { text:"9歳",      weight:1.58 },
+            { text:"10代前半", weight:0.02 },
+            { text:"10代後半", weight:0.005 },
+            { text:"20代前半", weight:0.008 },
+            { text:"20代後半", weight:0.01 },
+            { text:"30代前半", weight:0.01 },
+            { text:"30代後半", weight:0.05 },
+            { text:"40代前半", weight:0.09 },
+            { text:"40代後半", weight:4.3 },
+            { text:"50代前半", weight:7.6 },
+            { text:"50代後半", weight:8.0 },
+            { text:"60代前半", weight:8.3 },
+            { text:"60代後半", weight:7.6 },
+            { text:"70代前半", weight:6.8 },
+            { text:"70代後半", weight:9.0 },
+            { text:"80代前半", weight:6.2 },
+            { text:"80代後半", weight:5.63 },
+            { text:"90代前半", weight:6.25 },
+            { text:"90代後半", weight:7.06 },
+            { text:"100代前半",weight:0.51 },
+            { text:"100代後半",weight:0.341 },
+            { text:"110代前半",weight:0.046005 },
+            { text:"110代後半",weight:0.0480001 }
+        ],
+        list3: [
+            { text: "女", weight: 20 },
+            { text: "男", weight: 80 }
+        ]
+    };
+    
+    let timers = [null, null, null];
+    let isSpinning = false;
+
+    // 重みに基づいてランダムに1つの単語と確率を計算する関数
+    function getRandomItem(list) {
+        const totalWeight = list.reduce((sum, item) => sum + item.weight, 0);
+        let randomNum = Math.random() * totalWeight;
+        
+        for (const item of list) {
+            if (randomNum < item.weight) {
+                const percent = ((item.weight / totalWeight) * 100).toFixed(1); 
+                return { text: item.text, percent: percent };
+            }
+            randomNum -= item.weight;
+        }
+        return { text: list[0].text, percent: 0 };
+    }
+
+    // ボタンが押されたときにスタートかストップかを振り分ける関数
+    function handleSlotAction() {
+        const btn = document.getElementById('main-slot-btn');
+        
+        if (!isSpinning) {
+            // 🎰 まだ回っていないなら：スタート処理
+            isSpinning = true;
+            btn.textContent = "停止";
+            btn.style.backgroundColor = "#ef4444"; // ボタンを赤色に
+            
+            // 全スロットの回転開始と画面リセット
+            for (let i = 0; i < 3; i++) {
+                const display = document.getElementById(`slot-${i+1}`);
+                const probDisplay = document.getElementById(`prob-${i+1}`);
+                
+                display.classList.remove('hit');
+                display.classList.add('spinning');
+                probDisplay.textContent = ""; // 前回の確率表示を消す
+
+                const currentList = slotData[`list${i+1}`];
+                timers[i] = setInterval(() => {
+                    const randomIndex = Math.floor(Math.random() * currentList.length);
+                    display.textContent = currentList[randomIndex].text;
+                }, 50);
+            }
+        } else {
+            // 🛑 すでに回っているなら：ストップ処理
+            // 連打バグを防ぐため、完全に止まるまでボタンを一時無効化
+            btn.disabled = true;
+            btn.textContent = "停止";
+            
+            // 時間差（0.3秒刻み）でスロットを1つずつ止めていく
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    clearInterval(timers[i]);
+                    const display = document.getElementById(`slot-${i+1}`);
+                    const probDisplay = document.getElementById(`prob-${i+1}`);
+                    
+                    display.classList.remove('spinning');
+                    display.classList.add('hit');
+
+                    // 確率に基づいた結果を画面に反映
+                    const currentList = slotData[`list${i+1}`];
+                    const result = getRandomItem(currentList);
+                    if (i === 2) {
+                        result.percent = 50.0
+                        }
+                    if (i === 1) {
+                        // 1 〜 100 のランダムな整数
+                        const randomNumber = Math.random() * 90;
+                        }
+
+                        display.textContent = result.text;
+                        probDisplay.textContent = `確率: ${result.percent}%`;
+                    
+                    // 3つ目のスロットが完全に止まったら
+                    if (i === 2) {
+                        isSpinning = false;
+                        btn.disabled = false; // ボタンを再度使えるように
+                        btn.textContent = "動き";
+                        btn.style.backgroundColor = "#3b82f6"; // ボタンを青色に戻す
+                    }
+                }, i * 300);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
+
+
+
