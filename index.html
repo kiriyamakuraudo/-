@@ -144,6 +144,14 @@
         <button id="main-slot-btn" onclick="handleSlotAction()">動き</button>
     </div>
 </div>
+</div>
+<!-- ボタンの下に追加する履歴エリア -->
+<div style="margin-top: 25px; text-align: left; border-top: 2px dashed #e5e7eb; padding-top: 15px;">
+    <div style="font-size: 0.9rem; font-weight: bold; color: #4b5563; margin-bottom: 10px;">📜 最近の履歴（最新10件）</div>
+    <ul id="history-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #374151; max-height: 150px; overflow-y: auto;">
+        <!-- ここに履歴が追加されていきます -->
+    </ul>
+</div>
 
 <script>
     // 【単語と重みの設定】
@@ -460,6 +468,21 @@
                         btn.disabled = false; // ボタンを再度使えるように
                         btn.textContent = "動き";
                         btn.style.backgroundColor = "#3b82f6"; // ボタンを青色に戻す
+                        // 3つ目のスロットが止まった瞬間の文字を3つとも取得する
+                        const w1 = document.getElementById('slot-1').textContent;
+                        const w2 = document.getElementById('slot-2').textContent;
+                        const w3 = document.getElementById('slot-3').textContent;
+
+                        // 履歴リストの一番上に新しい結果を追加
+                        const historyList = document.getElementById('history-list');
+                        const newItem = document.createElement('li');
+                        newItem.style.padding = "5px 0";
+                        newItem.style.borderBottom = "1px solid #f3f4f6";
+                        newItem.textContent = `▶ ${w1} ／ ${w2} ／ ${w3}`;
+
+                        // 一番上に挿入
+                        historyList.insertBefore(newItem, historyList.firstChild);
+
                     }
                 }, i * 300);
             }
