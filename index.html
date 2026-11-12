@@ -109,7 +109,7 @@
         }
     </style>
 </head>
-    <title>○○しないと出られない部屋</title>
+   <title>○○しないと出られない部屋</title>
 <body>
 <h1 style="text-align: center;">○○しないとでられない部屋って知ってますか？</h1>
 <sen style="margin-top: 60px;">この言葉を聞くと何を想像するだろうか…</sen>
@@ -144,15 +144,15 @@
         <!-- 統合された1つのボタン -->
         <button id="main-slot-btn" onclick="handleSlotAction()">動き</button>
     </div>
-</div>
-</div>
+
 <!-- ボタンの下に追加する履歴エリア -->
 <div style="margin-top: 25px; text-align: left; border-top: 2px dashed #e5e7eb; padding-top: 15px;">
-    <div style="font-size: 0.9rem; font-weight: bold; color: #4b5563; margin-bottom: 10px;">📜 最近の履歴（最新10件）</div>
+    <div style="font-size: 0.9rem; font-weight: bold; color: #4b5563; margin-bottom: 10px;"> 試行回数</div>
     <ul id="history-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #374151; max-height: 150px; overflow-y: auto;">
-        <!-- ここに履歴が追加されていきます -->
     </ul>
 </div>
+
+
 
 <script>
     // 【単語と重みの設定】
@@ -361,28 +361,28 @@
             { text:"7歳",      weight:1.58 },
             { text:"8歳",      weight:1.58 },
             { text:"9歳",      weight:1.58 },
-            { text:"10代前半", weight:0.02 },
-            { text:"10代後半", weight:0.005 },
-            { text:"20代前半", weight:0.008 },
-            { text:"20代後半", weight:0.01 },
-            { text:"30代前半", weight:0.01 },
-            { text:"30代後半", weight:0.05 },
-            { text:"40代前半", weight:0.09 },
+            { text:"10代前半", weight:0.19 },
+            { text:"10代後半", weight:0.195 },
+            { text:"20代前半", weight:0.198 },
+            { text:"20代後半", weight:0.18 },
+            { text:"30代前半", weight:0.18 },
+            { text:"30代後半", weight:0.22 },
+            { text:"40代前半", weight:0.29 },
             { text:"40代後半", weight:4.3 },
             { text:"50代前半", weight:7.6 },
-            { text:"50代後半", weight:8.0 },
-            { text:"60代前半", weight:8.3 },
+            { text:"50代後半", weight:7.0 },
+            { text:"60代前半", weight:7.3 },
             { text:"60代後半", weight:7.6 },
             { text:"70代前半", weight:6.8 },
-            { text:"70代後半", weight:9.0 },
+            { text:"70代後半", weight:8.0 },
             { text:"80代前半", weight:6.2 },
             { text:"80代後半", weight:5.63 },
             { text:"90代前半", weight:6.25 },
-            { text:"90代後半", weight:7.06 },
+            { text:"90代後半", weight:6.06 },
             { text:"100代前半",weight:0.51 },
             { text:"100代後半",weight:0.341 },
-            { text:"110代前半",weight:0.046005 },
-            { text:"110代後半",weight:0.0480001 }
+            { text:"110代前半",weight:0.246005 },
+            { text:"110代後半",weight:0.1480001 }
         ],
         list3: [
             { text: "女", weight: 20 },
@@ -392,21 +392,28 @@
 
     let timers = [null, null, null];
     let isSpinning = false;
+    let spinCount = 0; // 試行回数をカウントする変数
 
-    // 重みに基づいてランダムに1つの単語と確率を計算する関数
-    function getRandomItem(list) {
-        const totalWeight = list.reduce((sum, item) => sum + item.weight, 0);
-        let randomNum = Math.random() * totalWeight;
+function getRandomItem(list) {
+    const totalWeight = list.reduce((sum, item) => sum + item.weight, 0);
+    let randomNum = Math.random() * totalWeight;
+    
+    for (const item of list) {
+        if (randomNum < item.weight) {
+            // ✨ 生の確率を計算
+            const rawPercent = (item.weight / totalWeight) * 100;
+            
+            // ✨ どんなに小さくてもゼロに丸めない魔法の1行！
+            // 有効数字（ゼロ以外の数字が出てから3桁分）を自動で残します
+            const percentText = Number(rawPercent.toPrecision(3)).toString();
 
-        for (const item of list) {
-            if (randomNum < item.weight) {
-                const percent = ((item.weight / totalWeight) * 100).toFixed(1);
-                return { text: item.text, percent: percent };
-            }
-            randomNum -= item.weight;
+            return { text: item.text, percent: percentText };
         }
-        return { text: list[0].text, percent: 0 };
+        randomNum -= item.weight;
     }
+    return { text: list.text, percent: "0" };
+}
+
 
     // ボタンが押されたときにスタートかストップかを振り分ける関数
     function handleSlotAction() {
@@ -469,6 +476,8 @@
                         btn.disabled = false; // ボタンを再度使えるように
                         btn.textContent = "動き";
                         btn.style.backgroundColor = "#3b82f6"; // ボタンを青色に戻す
+                        spinCount++;
+
                         // 3つ目のスロットが止まった瞬間の文字を3つとも取得する
                         const w1 = document.getElementById('slot-1').textContent;
                         const w2 = document.getElementById('slot-2').textContent;
@@ -479,7 +488,8 @@
                         const newItem = document.createElement('li');
                         newItem.style.padding = "5px 0";
                         newItem.style.borderBottom = "1px solid #f3f4f6";
-                        newItem.textContent = `▶ ${w1} ／ ${w2} ／ ${w3}`;
+                        newItem.textContent = `${spinCount}回目： ${w1} ／ ${w2} ／ ${w3}`;
+                        historyList.insertBefore(newItem, historyList.firstChild);
 
                         // 一番上に挿入
                         historyList.insertBefore(newItem, historyList.firstChild);
